@@ -19,9 +19,15 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: true, limit: "16kb" })); // a middleware function to parse incoming URL-encoded data from HTTP requests (extended: true allows for rich objects and arrays to be encoded into the URL-encoded format)
-
 app.use(express.static("public")); // a middleware function to serve static files
-
 app.use(cookieParser()); // a middleware function to parse cookies from the HTTP request object
+
+// routes
+
+import userRouter from "./routes/user.route.js";
+
+// routes declaration
+
+app.use("/api/v1/users", userRouter);
 
 export { app };
