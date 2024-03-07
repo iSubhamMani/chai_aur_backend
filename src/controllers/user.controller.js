@@ -170,6 +170,109 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "User logged out successfully", {}));
 });
 
+const changeCurrentUserPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user?._id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isPasswordCorrect = await user.isPasswordValid(oldPassword);
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Invalid password");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+    /* we did it this way to call the pre hook in the model to hash the password. Moreover
+    the findByIdandUpdate method does not call the pre hook*/
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Password changed successfully", {}));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res.status(200).json(new ApiResponse(200, "User found", req.user));
+});
+
+// text updates
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const { fullName, email } = req.body;
+
+    if (!fullName || !email) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { fullName, email },
+        },
+        { new: true }
+    ).select("-password");
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "User updated successfully", user));
+});
+
+// File updates
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const newAvatarLocalPath = req.files?.avatar[0]?.path;
+
+    if (!newAvatarLocalPath) {
+        throw new ApiError(400, "Avatar is required");
+    }
+
+    const newAvatar = await uploadToCloudinary(newAvatarLocalPath);
+
+    if (!newAvatar.url) {
+        throw new ApiError(500, "Error uploading avatar");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: { avatar: newAvatar.url },
+        },
+        { new: true }
+    ).select("-password");
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Avatar updated successfully", user));
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+    const newCoverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    if (!newCoverImageLocalPath) {
+        throw new ApiError(400, "Cover Image is required");
+    }
+
+    const newCoverImage = await uploadToCloudinary(newCoverImageLocalPath);
+
+    if (!newCoverImage.url) {
+        throw new ApiError(500, "Error uploading cover image");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: { coverImage: newCoverImage.url },
+        },
+        { new: true }
+    ).select("-password");
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Cover image updated successfully", user));
+});
+
 const renewToken = asyncHandler(async (req, res) => {
     try {
         // get refresh token from cookies
@@ -219,4 +322,14 @@ const renewToken = asyncHandler(async (req, res) => {
     }
 });
 
-export { registerUser, loginUser, logoutUser, renewToken };
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    renewToken,
+    changeCurrentUserPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage,
+};
