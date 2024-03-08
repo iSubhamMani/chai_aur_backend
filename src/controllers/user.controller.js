@@ -2,7 +2,10 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import {
+    deleteFromCloudinary,
+    uploadToCloudinary,
+} from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -241,6 +244,22 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         },
         { new: true }
     ).select("-password");
+
+    // Delete old image from cloudinary
+
+    const oldAvatar = req.user?.avatar;
+
+    if (!oldAvatar) {
+        throw new ApiError(400, "Error uploading avatar");
+    }
+
+    const publicId = oldAvatar.split("/").pop().split(".")[0];
+
+    const response = await deleteFromCloudinary(publicId);
+
+    if (response.result !== "ok") {
+        throw new ApiError(500, "Error deleting old avatar");
+    }
 
     return res
         .status(200)
