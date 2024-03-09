@@ -7,6 +7,7 @@ import {
     uploadToCloudinary,
 } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -360,6 +361,59 @@ const getChannelDetails = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "Channel found", channel[0]));
 });
 
+const getWatchHistory = asyncHandler(async (req, res) => {
+    const user = await User.aggregate([
+        {
+            $match: { _id: new mongoose.Types.ObjectId(req.user?._id) },
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory", // watchHistory will contain the Id's of the watched videos which we will push when viewed
+                foreignField: "_id", // so we are trying to get those videos by matching their id's
+                as: "watchHistory",
+                pipeline: [
+                    // now we are inside videos
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        username: 1,
+                                        fullName: 1,
+                                        avatar: 1,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner",
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    ]);
+
+    if (!user?.watchHistory.length) {
+        throw new ApiError(404, "Watch History not found");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "Watch History found", user[0].watchHistory)
+        );
+});
+
 const renewToken = asyncHandler(async (req, res) => {
     try {
         // get refresh token from cookies
@@ -420,4 +474,5 @@ export {
     updateUserAvatar,
     updateUserCoverImage,
     getChannelDetails,
+    getWatchHistory,
 };
