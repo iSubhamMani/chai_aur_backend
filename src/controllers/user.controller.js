@@ -350,7 +350,7 @@ const getChannelDetails = asyncHandler(async (req, res) => {
         },
     ]);
 
-    console.log(channel); // data returned is in form of array
+    // data returned is in form of array
 
     if (!channel?.length) {
         throw new ApiError(404, "Channel not found");
@@ -402,10 +402,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             },
         },
     ]);
-
-    if (!user[0]?.watchHistory.length) {
-        throw new ApiError(404, "Watch History not found");
-    }
 
     return res
         .status(200)
