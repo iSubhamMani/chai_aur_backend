@@ -403,7 +403,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         },
     ]);
 
-    if (!user?.watchHistory.length) {
+    if (!user[0]?.watchHistory.length) {
         throw new ApiError(404, "Watch History not found");
     }
 
