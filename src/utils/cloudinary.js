@@ -35,4 +35,17 @@ const deleteFromCloudinary = async (publicId) => {
     }
 };
 
-export { uploadToCloudinary, deleteFromCloudinary };
+const deleteVideoFromCloudinary = async (publicId) => {
+    try {
+        if (!publicId) return;
+
+        const response = await cloudinary.uploader.destroy(publicId, {
+            resource_type: "video",
+        });
+        return response;
+    } catch (error) {
+        return;
+    }
+};
+
+export { uploadToCloudinary, deleteFromCloudinary, deleteVideoFromCloudinary };
