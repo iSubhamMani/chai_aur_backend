@@ -101,4 +101,39 @@ const deleteVideo = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, "Video deleted sucessfully"));
 });
 
-export { publishVideo, getVideoById, deleteVideo };
+const updateVideoDetails = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    const { title, description } = req.body;
+
+    if (!videoId) {
+        throw new ApiError(400, "Video Id not provided");
+    }
+
+    if (!title || !description) {
+        throw new ApiError(400, "Title and description are required");
+    }
+
+    const newVideoDetails = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $set: { title, description },
+        },
+        { new: true }
+    );
+
+    if (!newVideoDetails) {
+        throw new ApiError(500, "Error updating video details");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                201,
+                "Video details updated sucessfully",
+                newVideoDetails
+            )
+        );
+});
+
+export { publishVideo, getVideoById, deleteVideo, updateVideoDetails };
