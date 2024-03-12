@@ -113,7 +113,7 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Title and description are required");
     }
 
-    const newVideoDetails = await Video.findByIdAndUpdate(
+    const video = await Video.findByIdAndUpdate(
         videoId,
         {
             $set: { title, description },
@@ -121,19 +121,68 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
         { new: true }
     );
 
-    if (!newVideoDetails) {
+    if (!video) {
         throw new ApiError(500, "Error updating video details");
     }
 
     return res
         .status(200)
+        .json(new ApiResponse(201, "Video details updated sucessfully", video));
+});
+
+const updateVideoThumbnail = asyncHandler(async (req, res) => {
+    const thumbnailLocalPath = req.file?.path;
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(404, "Video Id not provided");
+    }
+
+    if (!thumbnailLocalPath) {
+        throw new ApiError(404, "Thumbnail not provided");
+    }
+
+    const newThumbnail = await uploadToCloudinary(thumbnailLocalPath);
+
+    if (!newThumbnail?.url) {
+        throw new ApiError(500, "Error uploading thumbnail");
+    }
+
+    const video = await Video.findByIdAndUpdate(videoId, {
+        $set: { thumbnail: newThumbnail?.url },
+    });
+
+    if (!video) {
+        throw new ApiError(500, "Error updating thumbnail");
+    }
+
+    // remove old thumbnail from cloudinary
+
+    const oldThumbnail = await deleteFromCloudinary(
+        getCloudinaryId(video?.thumbnail)
+    );
+
+    if (!oldThumbnail) {
+        throw new ApiError(500, "Error deleting old thumbnail");
+    }
+
+    const updatedVideo = await Video.findById(videoId);
+
+    if (!updatedVideo) {
+        throw new ApiError(500, "Error getting new video data");
+    }
+
+    return res
+        .status(200)
         .json(
-            new ApiResponse(
-                201,
-                "Video details updated sucessfully",
-                newVideoDetails
-            )
+            new ApiResponse(201, "Thumbnail updated sucessfully", updatedVideo)
         );
 });
 
-export { publishVideo, getVideoById, deleteVideo, updateVideoDetails };
+export {
+    publishVideo,
+    getVideoById,
+    deleteVideo,
+    updateVideoDetails,
+    updateVideoThumbnail,
+};

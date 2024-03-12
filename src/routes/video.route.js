@@ -6,6 +6,7 @@ import {
     getVideoById,
     publishVideo,
     updateVideoDetails,
+    updateVideoThumbnail,
 } from "../controllers/video.controller.js";
 
 const videoRouter = Router();
@@ -27,8 +28,13 @@ videoRouter.route("/publish").post(
 
 videoRouter.route("/v/:videoId").get(getVideoById);
 videoRouter.route("/delete/:videoId").post(verifyToken, deleteVideo);
+
 videoRouter
     .route("/update-details/:videoId")
     .patch(verifyToken, updateVideoDetails);
+
+videoRouter
+    .route("/update-thumbnail/:videoId")
+    .patch(verifyToken, upload.single("thumbnail"), updateVideoThumbnail);
 
 export default videoRouter;
