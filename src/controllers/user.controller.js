@@ -8,6 +8,7 @@ import {
 } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import getCloudinaryId from "../utils/getCloudinaryId.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -254,7 +255,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error uploading avatar");
     }
 
-    const publicId = oldAvatar.split("/").pop().split(".")[0];
+    const publicId = getCloudinaryId(oldAvatar);
 
     const response = await deleteFromCloudinary(publicId);
 
