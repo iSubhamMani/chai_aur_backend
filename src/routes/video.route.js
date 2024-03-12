@@ -5,11 +5,12 @@ import {
     deleteVideo,
     getVideoById,
     publishVideo,
+    updateVideoDetails,
 } from "../controllers/video.controller.js";
 
 const videoRouter = Router();
 
-videoRouter.route("/publish-video").post(
+videoRouter.route("/publish").post(
     verifyToken,
     upload.fields([
         {
@@ -25,6 +26,9 @@ videoRouter.route("/publish-video").post(
 );
 
 videoRouter.route("/v/:videoId").get(getVideoById);
-videoRouter.route("/delete-video/:videoId").post(verifyToken, deleteVideo);
+videoRouter.route("/delete/:videoId").post(verifyToken, deleteVideo);
+videoRouter
+    .route("/update-details/:videoId")
+    .patch(verifyToken, updateVideoDetails);
 
 export default videoRouter;
