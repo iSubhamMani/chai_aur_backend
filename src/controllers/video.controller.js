@@ -51,6 +51,7 @@ const publishVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
+    console.log(req);
 
     if (!videoId) {
         throw new ApiError(400, "Video Id not provided");
@@ -179,10 +180,43 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
         );
 });
 
+const togglePublishStatus = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(404, "No video id provided");
+    }
+
+    const video = await Video.findById(videoId);
+
+    if (!video) {
+        throw new ApiError(404, "Could not find the video");
+    }
+
+    const newVideo = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $set: { isPublished: !video?.isPublished },
+        },
+        { new: true }
+    );
+
+    if (!newVideo) {
+        throw new ApiError(500, "Error toggling published field");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "Video status updated sucessfully", newVideo)
+        );
+});
+
 export {
     publishVideo,
     getVideoById,
     deleteVideo,
     updateVideoDetails,
     updateVideoThumbnail,
+    togglePublishStatus,
 };

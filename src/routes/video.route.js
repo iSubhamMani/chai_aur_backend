@@ -5,6 +5,7 @@ import {
     deleteVideo,
     getVideoById,
     publishVideo,
+    togglePublishStatus,
     updateVideoDetails,
     updateVideoThumbnail,
 } from "../controllers/video.controller.js";
@@ -36,5 +37,9 @@ videoRouter
 videoRouter
     .route("/update-thumbnail/:videoId")
     .patch(verifyToken, upload.single("thumbnail"), updateVideoThumbnail);
+
+videoRouter
+    .route("/toggle-publish/:videoId")
+    .patch(verifyToken, togglePublishStatus);
 
 export default videoRouter;
