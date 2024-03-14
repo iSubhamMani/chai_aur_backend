@@ -212,6 +212,44 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
         );
 });
 
+const getAllVideos = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, query, sortBy, sortType } = req.query;
+
+    const options = {
+        page,
+        limit,
+    };
+
+    const pipeline = [
+        {
+            $match: {
+                $or: [
+                    { title: { $regex: query, $options: "i" } },
+                    { description: { $regex: query, $options: "i" } },
+                ],
+            },
+        },
+        {
+            $sort: {
+                [sortBy]: sortType === "asc" ? 1 : -1,
+            },
+        },
+    ];
+
+    const result = await Video.aggregatePaginate(
+        Video.aggregate(pipeline),
+        options
+    );
+
+    if (!result) {
+        throw new ApiError(500, "Error getting data");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Fetched data sucessfully", result));
+});
+
 export {
     publishVideo,
     getVideoById,
@@ -219,4 +257,5 @@ export {
     updateVideoDetails,
     updateVideoThumbnail,
     togglePublishStatus,
+    getAllVideos,
 };
