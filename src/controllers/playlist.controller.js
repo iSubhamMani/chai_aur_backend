@@ -76,4 +76,41 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "Video added to playlist", playlist));
 });
 
-export { createPlayList, getUserPlaylists, addVideoToPlaylist };
+const getPlaylistById = asyncHandler(async (req, res) => {
+    const { playlistId } = req.params;
+
+    if (!playlistId) {
+        throw new ApiError(400, "Playlist Id not provided");
+    }
+
+    const playlist = await Playlist.aggregate([
+        {
+            $match: { _id: new mongoose.Types.ObjectId(playlistId) },
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "videos",
+                foreignField: "_id",
+                as: "videos",
+            },
+        },
+    ]);
+
+    if (!playlist) {
+        throw new ApiError(500, "Error getting playlist");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "Playlist fetched successfully", playlist[0])
+        );
+});
+
+export {
+    createPlayList,
+    getUserPlaylists,
+    addVideoToPlaylist,
+    getPlaylistById,
+};

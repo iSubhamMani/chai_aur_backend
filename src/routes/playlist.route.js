@@ -3,6 +3,7 @@ import { verifyToken } from "../middlewares/auth.middleware.js";
 import {
     addVideoToPlaylist,
     createPlayList,
+    getPlaylistById,
     getUserPlaylists,
 } from "../controllers/playlist.controller.js";
 
@@ -15,5 +16,8 @@ playlistRouter
 playlistRouter
     .route("/add-to-playlist/:videoId/:playlistId")
     .patch(verifyToken, addVideoToPlaylist);
+playlistRouter
+    .route("/get-playlist/:playlistId")
+    .get(verifyToken, getPlaylistById);
 
 export default playlistRouter;
