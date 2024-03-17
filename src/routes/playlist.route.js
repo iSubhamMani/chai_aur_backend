@@ -3,6 +3,7 @@ import { verifyToken } from "../middlewares/auth.middleware.js";
 import {
     addVideoToPlaylist,
     createPlayList,
+    deletePlayList,
     getPlaylistById,
     getUserPlaylists,
     removeVideoFromPlaylist,
@@ -23,5 +24,8 @@ playlistRouter
 playlistRouter
     .route("/remove-from-playlist/:videoId/:playlistId")
     .patch(verifyToken, removeVideoFromPlaylist);
+playlistRouter
+    .route("/delete-playlist/:playlistId")
+    .post(verifyToken, deletePlayList);
 
 export default playlistRouter;
