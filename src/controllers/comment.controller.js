@@ -80,4 +80,63 @@ const deleteComment = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "Comment deleted successfully"));
 });
 
-export { addComment, updateComment, deleteComment };
+const getVideoComments = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    if (!videoId) {
+        throw new ApiError(400, "Video Id not provided");
+    }
+
+    const options = {
+        page,
+        limit,
+    };
+
+    const pipeline = [
+        {
+            $match: {
+                video: new mongoose.Types.ObjectId(videoId),
+            },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullName: 1,
+                            avatar: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                owner: { $first: "$owner" },
+            },
+        },
+        {
+            $project: {
+                content: 1,
+                owner: 1,
+            },
+        },
+    ];
+
+    const comments = await Comment.aggregatePaginate(
+        Comment.aggregate(pipeline),
+        options
+    );
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Comments fetched successfully", comments));
+});
+
+export { addComment, updateComment, deleteComment, getVideoComments };

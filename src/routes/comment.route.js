@@ -3,6 +3,7 @@ import { verifyToken } from "../middlewares/auth.middleware.js";
 import {
     addComment,
     deleteComment,
+    getVideoComments,
     updateComment,
 } from "../controllers/comment.controller.js";
 
@@ -15,5 +16,8 @@ commentRouter
 commentRouter
     .route("/delete-comment/:commentId")
     .post(verifyToken, deleteComment);
+commentRouter
+    .route("/all-comments/:videoId")
+    .get(verifyToken, getVideoComments);
 
 export default commentRouter;
