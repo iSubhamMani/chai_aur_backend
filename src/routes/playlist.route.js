@@ -5,6 +5,7 @@ import {
     createPlayList,
     getPlaylistById,
     getUserPlaylists,
+    removeVideoFromPlaylist,
 } from "../controllers/playlist.controller.js";
 
 const playlistRouter = Router();
@@ -19,5 +20,8 @@ playlistRouter
 playlistRouter
     .route("/get-playlist/:playlistId")
     .get(verifyToken, getPlaylistById);
+playlistRouter
+    .route("/remove-from-playlist/:videoId/:playlistId")
+    .patch(verifyToken, removeVideoFromPlaylist);
 
 export default playlistRouter;

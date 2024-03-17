@@ -116,9 +116,34 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         );
 });
 
+const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
+    const { videoId, playlistId } = req.params;
+
+    if (!(videoId && playlistId)) {
+        throw new ApiError(400, "Playlist Id and Video Id are both required");
+    }
+
+    const result = await Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+            $pull: { videos: new mongoose.Types.ObjectId(videoId) },
+        },
+        { new: true }
+    );
+
+    if (!result) {
+        throw new ApiError(500, "Error removing video from playlist");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Video removed from playlist", result));
+});
+
 export {
     createPlayList,
     getUserPlaylists,
     addVideoToPlaylist,
     getPlaylistById,
+    removeVideoFromPlaylist,
 };
