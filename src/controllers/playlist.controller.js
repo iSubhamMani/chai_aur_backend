@@ -29,6 +29,10 @@ const createPlayList = asyncHandler(async (req, res) => {
 const getUserPlaylists = asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
+    if (!userId) {
+        throw new ApiError(400, "User Id not provided");
+    }
+
     const userPlaylists = await Playlist.aggregate([
         {
             $match: {
@@ -58,6 +62,10 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const { playlistId, videoId } = req.params;
+
+    if (!(playlistId && videoId)) {
+        throw new ApiError(400, "Playlist Id and Video Id are both required");
+    }
 
     const playlist = await Playlist.findByIdAndUpdate(
         playlistId,
