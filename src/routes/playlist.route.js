@@ -14,7 +14,7 @@ const playlistRouter = Router();
 
 playlistRouter.route("/create-playlist").post(verifyToken, createPlayList);
 playlistRouter
-    .route("/all-playlist/:userId")
+    .route("/all-playlists/:userId")
     .get(verifyToken, getUserPlaylists);
 playlistRouter
     .route("/add-to-playlist/:videoId/:playlistId")
